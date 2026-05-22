@@ -1,0 +1,15 @@
+# MacOS #
+#########
+.DS_Store
+*~
+
+# bash #
+########
+.bash_history
+
+# Vim #
+#######
+*.swp
+*.swo
+*.project.vim
+
