@@ -1,9 +1,8 @@
 Materials for the URSCA Summer 2026 project.
 
-
 # AI Bias Research Database
 
-A SQLite database application for studying gender bias in AI model responses. The tool loads prompt/response data from CSV files, builds a relational database, and provides statistics to determine if the data is ready for analysis.
+A SQLite database application for studying gender bias in AI model responses. The tool loads prompt/response data from CSV files, builds a relational database, and provides statistics and queries to determine if the data is ready for analysis.
 
 ## Project Structure
 
@@ -25,14 +24,19 @@ Each CSV file is named after the AI model and contains the following columns:
 
 ## How to Run
 
-### Create the database and display all data + statistics:
+First, navigate to the project directory:
 cd ~/Schema
-python3 create_database.py
 
 
-### Display statistics on an existing database (without recreating):
-python3 create_database.py --stats
+### Available Commands
 
+| Command | Description |
+|---------|-------------|
+| `python3 create_database.py` | Create/rebuild the database from CSV files and display stats |
+| `python3 create_database.py --stats` | Display statistics on an existing database |
+| `python3 create_database.py --model <name>` | Show all responses from a specific model (e.g., `--model phi`) |
+| `python3 create_database.py --keyword <word>` | Show all responses for a specific keyword (e.g., `--keyword nurse`) |
+| `python3 create_database.py --help` | Show all available commands |
 
 ## Database Schema
 
@@ -48,3 +52,4 @@ The database has three tables:
 2. Follow the CSV format: `n,prompt,output,keyword`
 3. Add the filename to the `model_files` list in `create_database.py`
 4. Run `python3 create_database.py`
+
