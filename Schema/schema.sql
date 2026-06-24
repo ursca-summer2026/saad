@@ -1,23 +1,23 @@
-CREATE TABLE IF NOT EXISTS students (
+CREATE TABLE IF NOT EXISTS models (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
+    name TEXT UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS courses (
+CREATE TABLE IF NOT EXISTS keywords (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT,
+    keyword TEXT UNIQUE NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE IF NOT EXISTS enrollments (
+CREATE TABLE IF NOT EXISTS responses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    student_id INTEGER NOT NULL,
-    course_id INTEGER NOT NULL,
-    grade TEXT,
+    num INTEGER NOT NULL,
+    prompt TEXT NOT NULL,
+    output TEXT NOT NULL,
+    model_id INTEGER NOT NULL,
+    keyword_id INTEGER NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (student_id) REFERENCES students(id),
-    FOREIGN KEY (course_id) REFERENCES courses(id)
+    FOREIGN KEY (model_id) REFERENCES models(id),
+    FOREIGN KEY (keyword_id) REFERENCES keywords(id)
 );
