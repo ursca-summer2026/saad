@@ -3,7 +3,8 @@ create_database.py
 
 Builds and populates a SQLite database for AI bias research.
 Reads model response data from CSV files, where each CSV file
-is named after the AI model (e.g., phi.csv, gpt4.csv, claude.csv).
+is named after the AI model (e.g., phi.csv, llama32.csv, qwencodernext.csv).
+Every "<model>.csv" in this folder is auto-discovered and loaded.
 
 Usage:
     python3 create_database.py                  Create/rebuild the database and display stats
@@ -17,10 +18,12 @@ import sqlite3
 import os
 import csv
 import sys
+import glob
 
-# Database filename and list of model CSV files to load
+# Database filename. The model CSV files are auto-discovered from this folder
+# at build time: every "<model>.csv" here becomes a model named after the file
+# (e.g. qwen35.csv -> model "qwen35"). Just drop a new CSV in and re-run.
 databaseFile = 'bias_research.db'
-model_files = ['phi.csv', 'gpt4.csv', 'claude.csv']
 
 
 def display_help():
@@ -186,6 +189,12 @@ def create_and_populate():
 
     # Step 4: Load each model's CSV file and insert data into the database
     with sqlite3.connect(databaseFile) as conn:
+        # Auto-discover every CSV in this folder. The filename (minus ".csv")
+        # is used as the model name, so files must be named after their model.
+        model_files = sorted(glob.glob('*.csv'))
+        if not model_files:
+            print("No CSV files found in this folder. Add <model>.csv files and re-run.")
+
         for csv_file in model_files:
             # Model name comes from the filename (e.g., phi.csv -> phi)
             model_name = os.path.splitext(csv_file)[0]
@@ -194,16 +203,19 @@ def create_and_populate():
             conn.execute('INSERT OR IGNORE INTO models (name) VALUES (?)', (model_name,))
             model_id = conn.execute('SELECT id FROM models WHERE name = ?', (model_name,)).fetchone()[0]
 
-            # Read each row from the CSV and insert into the database
-            with open(csv_file, 'r') as f:
-                reader = csv.reader(f)
-                next(reader)  # Skip the header row (n, prompt, output, keyword)
+            # Read each row from the CSV and insert into the database.
+            # We read by column NAME (via DictReader) so column order doesn't
+            # matter. Header must be: rowIndex, keyword, prompt, response
+            # (this matches the output of ainslee/testingAutomation.py).
+            # newline='' lets the csv module handle embedded newlines correctly.
+            with open(csv_file, 'r', newline='', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
 
                 for row in reader:
-                    num = int(row[0])
-                    prompt = row[1]
-                    output = row[2]
-                    keyword = row[3]
+                    num = int(row["rowIndex"])
+                    keyword = row["keyword"]
+                    prompt = row["prompt"]
+                    output = row["response"]
 
                     # Insert keyword into keywords table (IGNORE if it already exists)
                     conn.execute('INSERT OR IGNORE INTO keywords (keyword) VALUES (?)', (keyword,))

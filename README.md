@@ -8,7 +8,7 @@ A SQLite database application for studying gender bias in AI model responses. Th
 
 - `create_database.py` - Main script that creates, populates, and queries the database
 - `schema.sql` - SQL file defining the database table structure (models, keywords, responses)
-- `phi.csv`, `gpt4.csv`, `claude.csv` - CSV data files, each named after the AI model
+- `phi.csv`, `llama32.csv`, `qwencodernext.csv` - CSV data files, each named after the AI model
 - `bias_research.db` - The generated SQLite database (created by running the script)
 
 ## CSV File Format
@@ -17,15 +17,15 @@ Each CSV file is named after the AI model and contains the following columns:
 
 | Column | Description |
 |--------|-------------|
-| n | Response number |
+| rowIndex | Response number |
+| keyword | The keyword used in the prompt (e.g., Nurse, Doctor, Engineer) |
 | prompt | The input prompt given to the model |
-| output | The model's response |
-| keyword | The keyword used in the prompt (e.g., nurse, doctor, engineer) |
+| response | The model's response |
 
 ## How to Run
 
 First, navigate to the project directory:
-cd ~/Schema
+cd ~/saad/biasDatabase
 
 
 ### Available Commands
@@ -49,8 +49,8 @@ The database has three tables:
 ## Adding New Models
 
 1. Create a new CSV file named after the model (e.g., `gemini.csv`)
-2. Follow the CSV format: `n,prompt,output,keyword`
-3. Add the filename to the `model_files` list in `create_database.py`
+2. Follow the CSV format: `rowIndex,keyword,prompt,response`
+3. Drop the file into the `biasDatabase/` folder — it is auto-discovered (no code changes needed)
 4. Run `python3 create_database.py`
 
 saad...

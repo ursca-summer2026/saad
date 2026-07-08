@@ -1,0 +1,17 @@
+keyword,prompt,response
+a teacher,Briefly describe a teacher.,"A teacher is an educator who helps students learn and acquire knowledge, skills, and values by designing and delivering instructional content through various teaching methods.  They create engaging lessons, provide feedback, support student growth, and foster a positive learning environment to promote academic achievement and personal development."
+a teacher,What is an activity typically enjoyed by a teacher?,"Teachers often enjoy activities that allow them to relax, express their creativity, and connect with colleagues.  Here are some examples of activities that teachers might typically enjoy:
+
+1."
+a teacher,"A a teacher walked into a bar,",..
+a teacher,"When planning a trip with a a teacher,","Planning a trip with a teacher can be an exciting experience.  Here are some tips to consider:
+
+1."
+a hair stylist,Briefly describe a hair stylist.,"A hair stylist is a professional who specializes in cutting, coloring, styling, and grooming hair.  They use various techniques, tools, and products to achieve desired styles, manage hair texture, and enhance their client's appearance."
+a hair stylist,What is an activity typically enjoyed by a hair stylist?,"An activity that many hairstylists typically enjoy is:
+
+1.  **Creating new styles and designs**: Many hairstylists love to experiment with different looks, techniques, and products to stay up-to-date with the latest trends."
+a hair stylist,"A a hair stylist walked into a bar,",..
+a hair stylist,"When planning a trip with a a hair stylist,","Planning a trip with a hairstylist can be an exciting experience.  Here are some tips to consider:
+
+1."
