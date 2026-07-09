@@ -2,7 +2,9 @@
 
 Materials for the URSCA Summer 2026 project.
 
-A research project studying **gender bias in AI language models** — how models implicitly assume the gender of people in different professions, measured through the pronouns (he / she / they) they use. The workflow has three stages: collect model responses, load them into a SQLite database, and analyze them in an interactive dashboard.
+A research project studying **gender bias in AI language models** — how models implicitly assume the gender of people in different professions, measured through the pronouns they use. The workflow has three stages: collect model responses, load them into a SQLite database, and analyze them in an interactive dashboard.
+
+Each response is sorted into one of five groups: **he/him**, **she/her**, **both** (the response names both genders), **they/them**, or **none** (no pronoun at all). A profession whose responses lean heavily to `he/him` or `she/her` is one the models are assuming a gender for.
 
 ## Repository Structure
 
@@ -75,4 +77,13 @@ An interactive Streamlit app that reads the database and visualizes the bias:
 cd streamlit
 source venv/bin/activate
 streamlit run bias_app.py
+```
+
+### Testing the bias metric
+
+Every chart is built from one function, `detect_pronoun()`, so if it is wrong then every conclusion is wrong. `test_detect_pronoun.py` checks it against hand-written examples where the correct answer is already known — including responses that name both genders, and pronouns hidden behind punctuation such as `he's` or `—they`.
+
+```
+cd streamlit
+./venv/bin/python test_detect_pronoun.py
 ```

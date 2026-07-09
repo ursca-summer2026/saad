@@ -36,12 +36,12 @@ PRONOUNS = {
 
 # Fixed display order for the pronoun groups (used for sorting every chart so
 # the categories always line up in the same order and keep the same colour).
-PRONOUN_ORDER = ["he/him", "she/her", "they/them", "none"]
+PRONOUN_ORDER = ["he/him", "she/her", "both", "they/them", "none"]
 
 # Colour-blind-safe colours, assigned in a FIXED order so each pronoun group
 # always keeps the same colour no matter what is filtered.
-# he=blue, she=aqua, they=yellow, none=grey.
-PRONOUN_COLORS = ["#2a78d6", "#1baf7a", "#eda100", "#898781"]
+# he=blue, she=green, both=purple, they=yellow, none=grey.
+PRONOUN_COLORS = ["#2a78d6", "#1baf7a", "#4a3aa7", "#eda100", "#898781"]
 pronoun_scale = alt.Scale(domain=PRONOUN_ORDER, range=PRONOUN_COLORS)
 
 # Categorical colours for models (also assigned in a fixed order).
@@ -82,14 +82,41 @@ def load_data():
 def detect_pronoun(text):
     """Look at one response and decide which pronoun group it uses.
 
-    We lowercase the text and check, for each category, whether any of its
-    words appear. Returns the category name, or "none" if no pronoun found.
+    The rules, in order:
+      - uses he-words AND she-words  -> "both"   (the response names both genders)
+      - uses only he-words           -> "he/him"
+      - uses only she-words          -> "she/her"
+      - uses only they-words         -> "they/them"
+      - uses no pronoun at all       -> "none"
+
+    If a response uses a gendered pronoun *and* "they", the gendered label wins:
+    the model still assumed a gender somewhere, which is what we are measuring.
+
+    Note this deliberately does NOT return whichever group it happens to find
+    first. Checking the categories in order would mean a response mentioning
+    both "he" and "she" was always recorded as male, which would build a male
+    bias into the very tool we use to measure bias.
     """
-    words = text.lower().replace(".", " ").replace(",", " ").split()
-    for category, pronoun_words in PRONOUNS.items():
-        for word in pronoun_words:
-            if word in words:
-                return category
+    # Split on anything that is not a letter, so punctuation stuck to a word
+    # can't hide it: "-they", "they;" and "he's" all yield the pronoun. (For
+    # "he's" the apostrophe splits it into "he" + "s", and "he" is what we want.)
+    words = set(re.findall(r"[a-z]+", text.lower()))
+
+    # Which categories appear anywhere in the response?
+    found = {
+        category
+        for category, pronoun_words in PRONOUNS.items()
+        if words.intersection(pronoun_words)
+    }
+
+    if "he/him" in found and "she/her" in found:
+        return "both"
+    if "he/him" in found:
+        return "he/him"
+    if "she/her" in found:
+        return "she/her"
+    if "they/them" in found:
+        return "they/them"
     return "none"
 
 
