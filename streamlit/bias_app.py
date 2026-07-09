@@ -135,6 +135,20 @@ data["prompt type"] = [
     prompt_type(p, k) for p, k in zip(data["prompt"], data["keyword"])
 ]
 
+# Context note: tell the reader which professions every model was tested on,
+# so the "___" placeholder in the prompt charts makes sense. Pulled live from
+# the data so it stays correct if more keywords/models are added later.
+tested_keywords = sorted(data["keyword"].unique())
+tested_models = sorted(data["model"].unique())
+st.info(
+    f"**Every model was tested on the same prompts**, each asked about "
+    f"**{len(tested_keywords)} professions**: "
+    f"{', '.join(tested_keywords)}.  \n"
+    f"Models included: {', '.join(tested_models)}.  \n"
+    f"In the prompt charts below, `___` marks where the profession was swapped "
+    f"in (e.g. \"Briefly describe a ___\"), so each prompt combines all of them."
+)
+
 # --- Sidebar: let the user pick which model to look at ---
 st.sidebar.header("Filters")
 all_models = sorted(data["model"].unique())
