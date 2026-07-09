@@ -1,56 +1,77 @@
+# AI Bias Research
+
 Materials for the URSCA Summer 2026 project.
 
-# AI Bias Research Database
+A research project studying **gender bias in AI language models** — how models implicitly assume the gender of people in different professions, measured through the pronouns (he / she / they) they use. The workflow has three stages: collect model responses, load them into a SQLite database, and analyze them in an interactive dashboard.
 
-A SQLite database application for studying gender bias in AI model responses. The tool loads prompt/response data from CSV files, builds a relational database, and provides statistics and queries to determine if the data is ready for analysis.
+## Repository Structure
 
-## Project Structure
+| Folder | What it does |
+|--------|--------------|
+| `biasDatabase/` | Builds and queries the SQLite database from the CSV data |
+| `streamlit/` | Interactive dashboard that visualizes the bias analysis |
+| `ainslee/` | Response-collection tool that generates the per-model CSVs |
 
-- `create_database.py` - Main script that creates, populates, and queries the database
-- `schema.sql` - SQL file defining the database table structure (models, keywords, responses)
-- `phi.csv`, `llama32.csv`, `qwencodernext.csv` - CSV data files, each named after the AI model
-- `bias_research.db` - The generated SQLite database (created by running the script)
+## The Data (CSV Format)
 
-## CSV File Format
-
-Each CSV file is named after the AI model and contains the following columns:
+Each model's responses live in one CSV file named after the model (e.g. `phi.csv`). Every file has the same four columns:
 
 | Column | Description |
 |--------|-------------|
-| rowIndex | Response number |
-| keyword | The keyword used in the prompt (e.g., Nurse, Doctor, Engineer) |
-| prompt | The input prompt given to the model |
-| response | The model's response |
+| `rowIndex` | Response number |
+| `keyword` | The profession keyword in the prompt (e.g. Nurse, Doctor, Lawyer, Engineer) |
+| `prompt` | The input prompt given to the model |
+| `response` | The model's answer |
 
-## How to Run
+Current datasets: `phi.csv`, `llama32.csv`, `qwencodernext.csv`.
 
-First, navigate to the project directory:
-cd ~/saad/biasDatabase
+## Building the Database (`biasDatabase/`)
 
+The database has three normalized tables:
+
+- **models** — model names (taken from the CSV filenames)
+- **keywords** — the profession keywords used in prompts
+- **responses** — each prompt/response pair, linked to a model and keyword via foreign keys
+
+Every `<model>.csv` in the `biasDatabase/` folder is auto-discovered and loaded, so adding a model needs no code changes. The generated `bias_research.db` is rebuilt from the CSVs (and is git-ignored).
+
+### How to run
+
+```
+cd biasDatabase
+python3 create_database.py
+```
 
 ### Available Commands
 
 | Command | Description |
 |---------|-------------|
-| `python3 create_database.py` | Create/rebuild the database from CSV files and display stats |
+| `python3 create_database.py` | Create/rebuild the database from the CSV files and display stats |
 | `python3 create_database.py --stats` | Display statistics on an existing database |
-| `python3 create_database.py --model <name>` | Show all responses from a specific model (e.g., `--model phi`) |
-| `python3 create_database.py --keyword <word>` | Show all responses for a specific keyword (e.g., `--keyword nurse`) |
+| `python3 create_database.py --model <name>` | Show all responses from a specific model (e.g. `--model phi`) |
+| `python3 create_database.py --keyword <word>` | Show all responses for a specific keyword (e.g. `--keyword Nurse`) |
 | `python3 create_database.py --help` | Show all available commands |
 
-## Database Schema
+### Adding a New Model
 
-The database has three tables:
-
-- **models** - Stores AI model names (extracted from CSV filenames)
-- **keywords** - Stores unique keywords used in prompts (e.g., nurse, doctor, engineer)
-- **responses** - Stores each prompt/response pair, linked to a model and keyword via foreign keys
-
-## Adding New Models
-
-1. Create a new CSV file named after the model (e.g., `gemini.csv`)
-2. Follow the CSV format: `rowIndex,keyword,prompt,response`
-3. Drop the file into the `biasDatabase/` folder — it is auto-discovered (no code changes needed)
+1. Create a CSV named after the model (e.g. `gemini.csv`)
+2. Use the format `rowIndex,keyword,prompt,response`
+3. Drop it into the `biasDatabase/` folder — it is auto-discovered (no code changes needed)
 4. Run `python3 create_database.py`
 
-saad...
+## Analysis Dashboard (`streamlit/`)
+
+An interactive Streamlit app that reads the database and visualizes the bias:
+
+- Browse every response, filtered by model
+- Pronoun usage compared between models (bar chart)
+- Bias by profession (heatmap)
+- Model-vs-model comparison (heatmap)
+
+### How to run
+
+```
+cd streamlit
+source venv/bin/activate
+streamlit run bias_app.py
+```
