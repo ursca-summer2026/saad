@@ -4,7 +4,7 @@ Materials for the URSCA Summer 2026 project.
 
 A research project studying **gender bias in AI language models** — how models implicitly assume the gender of people in different professions, measured through the pronouns they use. The workflow has three stages: collect model responses, load them into a SQLite database, and analyze them in an interactive dashboard.
 
-Each response is sorted into one of five groups: **he/him**, **she/her**, **both** (the response names both genders), **they/them**, or **none** (no pronoun at all). A profession whose responses lean heavily to `he/him` or `she/her` is one the models are assuming a gender for.
+Each response is sorted into one of four groups: **he/him**, **she/her**, **they/them**, or **none** (no pronoun at all). When a response mentions more than one gender, the one mentioned most often wins. A profession whose responses lean heavily to `he/him` or `she/her` is one the models are assuming a gender for.
 
 ## Repository Structure
 
@@ -61,6 +61,10 @@ python3 create_database.py
 3. Drop it into the `biasDatabase/` folder — it is auto-discovered (no code changes needed)
 4. Run `python3 create_database.py`
 
+Step 4 is required. The dashboard reads the **database**, not the CSV files, so a new CSV does not appear until the database is rebuilt. After that the dashboard picks the model up on its own — model names, keyword lists, filters and chart colours are all read from the data.
+
+Two current limits worth knowing: the dashboard has **8 model colours**, so a 9th model would run out; and a CSV placed in `biasDatabase/_excluded/` is deliberately ignored (subfolders are not searched).
+
 ## Analysis Dashboard (`streamlit/`)
 
 An interactive Streamlit app that reads the database and visualizes the bias:
@@ -81,7 +85,7 @@ streamlit run bias_app.py
 
 ### Testing the bias metric
 
-Every chart is built from one function, `detect_pronoun()`, so if it is wrong then every conclusion is wrong. `test_detect_pronoun.py` checks it against hand-written examples where the correct answer is already known — including responses that name both genders, and pronouns hidden behind punctuation such as `he's` or `—they`.
+Every chart is built from one function, `detect_pronoun()`, so if it is wrong then every conclusion is wrong. `test_detect_pronoun.py` checks it against hand-written examples where the correct answer is already known — including responses that mention more than one gender, and pronouns hidden behind punctuation such as `he's` or `—they`.
 
 ```
 cd streamlit

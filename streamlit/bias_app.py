@@ -4,15 +4,22 @@ Bias Research — Streamlit analysis app.
 What this app does:
   1. Connects to the bias_research.db SQLite database (read-only).
   2. Lets you browse the AI model responses, filtered by model.
-  3. Detects the pronouns (he / she / they) used in each response --
-     this is how we measure the model's gender assumption.
+  3. Sorts each response into one pronoun group -- he/him, she/her,
+     they/them, or none -- which is how we measure the model's gender
+     assumption. See detect_pronoun() for the rules.
   4. Compares that pronoun usage:
        - between models        (grouped bar chart)
        - by profession         (heatmap)
        - by model              (heatmap)
+       - per prompt            (grouped bar chart, as percentages)
 
 Run it from the `streamlit` folder with:
     streamlit run bias_app.py
+
+detect_pronoun() is the heart of this app: every chart is built from it, so if
+it is wrong then every conclusion is wrong. It has its own tests, which you can
+run with:
+    ./venv/bin/python test_detect_pronoun.py
 """
 
 import re
@@ -36,12 +43,12 @@ PRONOUNS = {
 
 # Fixed display order for the pronoun groups (used for sorting every chart so
 # the categories always line up in the same order and keep the same colour).
-PRONOUN_ORDER = ["he/him", "she/her", "both", "they/them", "none"]
+PRONOUN_ORDER = ["he/him", "she/her", "they/them", "none"]
 
 # Colour-blind-safe colours, assigned in a FIXED order so each pronoun group
 # always keeps the same colour no matter what is filtered.
-# he=blue, she=green, both=purple, they=yellow, none=grey.
-PRONOUN_COLORS = ["#2a78d6", "#1baf7a", "#4a3aa7", "#eda100", "#898781"]
+# he=blue, she=green, they=yellow, none=grey.
+PRONOUN_COLORS = ["#2a78d6", "#1baf7a", "#eda100", "#898781"]
 pronoun_scale = alt.Scale(domain=PRONOUN_ORDER, range=PRONOUN_COLORS)
 
 # Categorical colours for models (also assigned in a fixed order).
@@ -82,40 +89,54 @@ def load_data():
 def detect_pronoun(text):
     """Look at one response and decide which pronoun group it uses.
 
-    The rules, in order:
-      - uses he-words AND she-words  -> "both"   (the response names both genders)
-      - uses only he-words           -> "he/him"
-      - uses only she-words          -> "she/her"
-      - uses only they-words         -> "they/them"
-      - uses no pronoun at all       -> "none"
+    The rules:
+      - counts he-words and she-words. The one used MORE OFTEN wins.
+      - if both are used the same number of times, the one that appears
+        EARLIER IN THE RESPONSE wins.
+      - if no gendered pronoun is used but "they" is, the answer is "they/them".
+      - if there is no pronoun at all, the answer is "none".
 
-    If a response uses a gendered pronoun *and* "they", the gendered label wins:
-    the model still assumed a gender somewhere, which is what we are measuring.
+    Counting is what makes this fair. A story about a female nurse may still
+    mention a male patient ("as she changed John's dressing... his chart"). The
+    response is clearly about a woman, and counting mentions gets that right,
+    whereas simply spotting one "his" would wrongly call it male.
 
-    Note this deliberately does NOT return whichever group it happens to find
-    first. Checking the categories in order would mean a response mentioning
-    both "he" and "she" was always recorded as male, which would build a male
-    bias into the very tool we use to measure bias.
+    A gendered pronoun always beats "they": the model still assumed a gender
+    somewhere, and that assumption is exactly what this research measures.
+
+    Note that nothing here depends on the order of the PRONOUNS dictionary. An
+    earlier version returned the first category it found, which meant any
+    response naming both a man and a woman was recorded as male -- a male bias
+    built into the very tool used to measure bias.
     """
     # Split on anything that is not a letter, so punctuation stuck to a word
     # can't hide it: "-they", "they;" and "he's" all yield the pronoun. (For
     # "he's" the apostrophe splits it into "he" + "s", and "he" is what we want.)
-    words = set(re.findall(r"[a-z]+", text.lower()))
+    words = re.findall(r"[a-z]+", text.lower())
 
-    # Which categories appear anywhere in the response?
-    found = {
-        category
+    # How many times does each group's words appear? (A list, not a set, so a
+    # pronoun used five times counts five times.)
+    tally = {
+        category: sum(word in pronoun_words for word in words)
         for category, pronoun_words in PRONOUNS.items()
-        if words.intersection(pronoun_words)
     }
 
-    if "he/him" in found and "she/her" in found:
-        return "both"
-    if "he/him" in found:
+    if tally["he/him"] > tally["she/her"]:
         return "he/him"
-    if "she/her" in found:
+    if tally["she/her"] > tally["he/him"]:
         return "she/her"
-    if "they/them" in found:
+
+    # Equal counts. If that is because both are zero, fall back to they/none.
+    # Otherwise it is a genuine tie, so let the response itself break it: the
+    # gender the model mentions first is the one it reached for first.
+    if tally["he/him"] > 0:
+        for word in words:
+            if word in PRONOUNS["he/him"]:
+                return "he/him"
+            if word in PRONOUNS["she/her"]:
+                return "she/her"
+
+    if tally["they/them"] > 0:
         return "they/them"
     return "none"
 

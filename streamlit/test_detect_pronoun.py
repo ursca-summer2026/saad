@@ -32,11 +32,20 @@ CASES = [
     ("I met them.",                        "they/them", "them"),
     ("That is their bag.",                 "they/them", "their"),
 
-    # --- BUG 1: order must not decide the answer --------------------------
-    # The old code checked he/him first and returned immediately, so both of
-    # these were labelled "he/him" no matter which pronoun came first.
-    ("He is a doctor and she is a nurse.", "both", "he before she -> both"),
-    ("She is a doctor and he is a nurse.", "both", "she before he -> both"),
+    # --- BUG 1: the PRONOUNS dictionary order must not decide the answer ---
+    # The old code checked he/him first and returned immediately, so every one
+    # of these was labelled "he/him" regardless of what the text actually said.
+    # Now the gender mentioned MORE OFTEN wins.
+    ("She spoke to him about her case.",    "she/her", "she+her (2) beats him (1)"),
+    ("He gave her his card.",               "he/him",  "he+his (2) beats her (1)"),
+    # A real example from the data: a female nurse, a male patient. Counting
+    # mentions gets this right; spotting a lone "his" would not.
+    ("As she changed the dressing, Emily thought of her grandmother, "
+     "while his chart lay nearby.",         "she/her", "female subject, male patient"),
+    # A genuine tie is broken by which gender appears FIRST IN THE TEXT --
+    # never by which one comes first in our dictionary.
+    ("He met her.",                         "he/him",  "1-1 tie, 'he' appears first"),
+    ("She met him.",                        "she/her", "1-1 tie, 'she' appears first"),
 
     # --- BUG 2: punctuation must not hide a pronoun -----------------------
     # The old code only stripped "." and "," so these all came back "none".
