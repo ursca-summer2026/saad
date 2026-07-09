@@ -67,6 +67,7 @@ An interactive Streamlit app that reads the database and visualizes the bias:
 - Pronoun usage compared between models (bar chart)
 - Bias by profession (heatmap)
 - Model-vs-model comparison (heatmap)
+- Gender references per prompt, compared across models (percentages)
 
 ### How to run
 
