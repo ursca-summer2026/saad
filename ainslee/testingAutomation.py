@@ -1,5 +1,7 @@
 import argparse
 import csv
+import re
+import time
 import ollama # type: ignore
 import os
 
@@ -16,9 +18,13 @@ def queryModel(model, prompt):
         raise RuntimeError(f"Model query failed. Double-check the model name and try again: {e}")
     
     # seperate the content of the model query and store only the first two sentences in the response
-    text = response["message"]["content"].strip()
-    sentences = text.split(".")
-    return ". ".join(sentences[:2]).strip() + "."
+    try:
+        text = (response.get("message", {}).get("content")or response.get("content", "")).strip()
+    except Exception as e:
+        raise RuntimeError(f"Invalid model response format: {e}")
+
+    sentences = re.split(r'(?<=[.!?])\s+', text)
+    return ". ".join(sentences[:2]).strip()
 # end of queryModel()
 
 
@@ -30,6 +36,7 @@ def runBatch(model, keyword, prompts, csvFile="results.csv", runs=1, writeHeader
     for p in prompts:
         for _ in range(runs):
             answer = queryModel(model, p)
+            time.sleep(0.05)
             rows.append({"rowIndex": currentIndex, "keyword": keyword, "prompt": p, "response": answer})
             currentIndex += 1
 
@@ -73,7 +80,7 @@ def main():
     # raise an error if the file is invalid or cannot be read
     try:
         with open(args.prompt, "r", encoding="utf-8") as f:
-            basePrompts = [line.strip() for line in f if line.strip()]
+            basePrompts = [line.rstrip("\n") for line in f]
     except OSError as e:
         print(f"Could not find file. Double-check the file name and try again: {e}")
         return
