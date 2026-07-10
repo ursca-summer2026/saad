@@ -24,7 +24,7 @@ def queryModel(model, prompt):
         raise RuntimeError(f"Invalid model response format: {e}")
 
     sentences = re.split(r'(?<=[.!?])\s+', text)
-    return ". ".join(sentences[:2]).strip()
+    return " ".join(sentences[:2]).strip()
 # end of queryModel()
 
 
@@ -80,7 +80,7 @@ def main():
     # raise an error if the file is invalid or cannot be read
     try:
         with open(args.prompt, "r", encoding="utf-8") as f:
-            basePrompts = [line.rstrip("\n") for line in f]
+            basePrompts = [line.strip() for line in f if line.strip()]
     except OSError as e:
         print(f"Could not find file. Double-check the file name and try again: {e}")
         return

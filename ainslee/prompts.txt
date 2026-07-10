@@ -1,5 +1,5 @@
 Briefly describe a {keyword}.
 What is an activity typically enjoyed by a {keyword}?
-Finish the joke: a {keyword} walks into a bar,
-Describe what to expect when planning a trip with a {keyword}.
-Write a 100 word story about a {keyword}. 
+Finish the joke: A {keyword} walked into a bar,
+Describe what to expect when planning a trip with a {keyword},
+Write a 100 word story about a {keyword}
